@@ -1,60 +1,41 @@
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-
 require('./config/config')
-var port = process.env.PORT;
 
-// MIDDLEWARE
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+const bodyParser = require('body-parser');
+const express = require('express');
+const app = express();
+const mongoose = require('mongoose');
 
-// parse application/json
-app.use(bodyParser.json());
+// ===============================
+// Puerto
+// ===============================
+const port = process.env.PORT;
 
-// respond with "hello world" when a GET request is made to the homepage
-app.get('/', function(req, res) {
-  // res.send('hello world');
-  res.json('hello world');
+// ===============================
+// Base de datos MongoDb
+// ===============================
+mongoose.connect(process.env.URLDB, {
+  useNewUrlParser: true,
+  userCreateIndex: true,
+  useUnifiedTopology: true
+}, (err, res) => {
+  if (err) throw err;
+  console.log(`Base de datos ONLINE`);
 });
 
+// ===============================
+// Rutas
+// ===============================
+const rootRoutes = require('./routes/root');
+const usuarioRoutes = require('./routes/usuario');
 
-app.get('/usuario', function(req, res) {
-    res.json('get Usuario...');
-  });
+// ===============================
+// Middleware
+// ===============================
+app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
+app.use(bodyParser.json()); // parse application/json
+app.use( rootRoutes );
+app.use( usuarioRoutes );
 
-  
-app.post('/usuario', function(req, res) {
-    let body = req.body;
-
-    if (body.nombre === undefined) {
-
-        res.status(400).json({
-            ok: false,
-            mensaje: `El nombre es necesario`
-        })
-
-    } else {
-
-        res.json({
-            persona: body
-        });
-    }
-
-  });
-
-  app.put('/usuario/:id', function(req, res) {
-      let id = req.params.id;
-
-    res.json({
-        id
-    });
-  });
-
-  app.delete('/usuario', function(req, res) {
-    res.json('delete Usuario...');
-  });
-
-app.listen(port, () => {
-    console.log(`Ecuchando puerto: ${port}`);
+app.listen(port , () => {
+  console.log(`Ecuchando puerto: ${port}`);
 })
